@@ -16,8 +16,11 @@
   </script>
 
   
-  <title>Archiv | Enjoe&#39;s Blog</title>
+  <title>Enjoe&#39;s Blog</title>
   <meta name="author" content="Enjoe">
+  
+  <meta name="description" content="##概述：
+这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -55,12 +58,7 @@
 </nav>
 <div class="clearfix"></div></header>
   <div id="content" class="inner">
-    <div id="main-col" class="alignleft"><div id="wrapper">
-<h2 class="archive-title">Archiv</h2>
-
-
-  
-    <article class="post">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
   
   <div class="post-content">
     <header>
@@ -70,7 +68,7 @@
       
       
   
-    <h1 class="title"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/"></a></h1>
+    <h1 class="title"></h1>
   
 
     </header>
@@ -162,6 +160,16 @@ NSOperationQueuePriorityVeryHigh = 8
       
         
         
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+    
+    
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
       
       <div class="clearfix"></div>
     </footer>
@@ -169,177 +177,26 @@ NSOperationQueuePriorityVeryHigh = 8
 </article>
 
 
+<section id="comment">
+<!-- 多说评论框 start -->
+    <div class="ds-thread" data-thread-key="2017/12/09/iOS-thread-pool-practicise-20171209/" data-title="" data-url="http://zhima.github.io/2017/12/09/iOS-thread-pool-practicise-20171209/"></div>
+    <!-- 多说评论框 end -->
+    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+    var duoshuoQuery = {short_name:"enjoe"};
+        (function() {
+                var ds = document.createElement('script');
+                        ds.type = 'text/javascript';ds.async = true;
+                                ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+                                        ds.charset = 'UTF-8';
+                                                (document.getElementsByTagName('head')[0] 
+                                                         || document.getElementsByTagName('body')[0]).appendChild(ds);
+                                                            })();
+                                                                </script>
+                                                                <!-- 多说公共JS代码 end -->
+</section>
 
 
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2017-12-09T09:32:43.000Z"><a href="/2017/12/09/xcode-compiled-config-20171209/">Dec 9 2017</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2017/12/09/xcode-compiled-config-20171209/"></a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>灵活运用 Xcode 给项目添加不同的编译时配置</p>
-<p>在开发过程中经常会需要定义一些常量，希望在编译生成不同版本时用不同的值。比较常见的一种做法是根据是否定义了 DEBUG 宏来定义不同的常量值，对于 debug 的版本使用 debug 的常量值，对于 release 的版本则使用 release 的常量值。如下所示：</p>
-<pre><code>#if DEBUG
-#define DefaultBaseURL @&quot;http://xxx.xxx.xxx.xxx&quot;
-#else
-#define DefaultBaseURL @&quot;http://aaaa.aaa.aaa&quot;
-#endif
-</code></pre><p>但这些都要定义在代码中，如果能定义在 plist 配置文件中就更好了。而且如果除了 debug 和 release 之外还有其他的版本需要定义不同的常量值呢？甚至如果要在编译时根据不同的版本使用不同的 Bundle ID 呢？很明显上面的方法是无法解决这些问题的。<br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2017/12/09/xcode-compiled-config-20171209/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-05-23T11:39:02.000Z"><a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/">May 23 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/">调用一个动态获得的 Class 的初始化 protocol 实例方法</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>##问题</p>
-<p>标题有点绕，其实就是把：</p>
-<ol>
-<li>通过 <code>runtime</code> 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。</li>
-<li>某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。</li>
-</ol>
-<p>这两种需求结合在一起。准确来说就是通过 <code>runtime</code> 获得了一个实现了某个 protocol 的 Class，现在创建这个 Class 的一个实例并且调用 protocol 的 init 方法来初始化。上面两个需求，单独一个都能很简单地完成，然而结合在一起之后就不是那么简单了。<br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-04-10T12:54:10.000Z"><a href="/2015/04/10/CoreData-transformable-20150410/">Apr 10 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/04/10/CoreData-transformable-20150410/">在 Core Data 中存取 transformable 类型的数据</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>在开发过程中有一个需要在 Core Data 中存取 NSDictionary 的需求，但是在 Core Data 的 attributeType 中并没有直接支持 NSDictionary 的类型，基本上就是一些 scalar 类型和 date、binary data、undefined 和 transformable 类型。</p>
-<p>最初的想法是把 NSDictionary 转为 NSData 然后用 binary data 的类型写入到 Core Data，然后要用的时候再从 Core Data 中读出 NSData，再转回 NSDictionary，但是想想这样其实也挺麻烦的，想看看 Core Data 有没有更好的对这类需求的支持，这个方法就作为最后的手段来使用吧。于是在扫了一遍 Core Data 的 attributeType 之后就盯上了 transformable 这个类型。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/04/10/CoreData-transformable-20150410/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-02-26T11:39:02.000Z"><a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/">Feb 26 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/">解决 OS X 10.10 下运行 brew 命令时出现的错误</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>  自从升级到 Yosemite 后就没用过 brew 命令了，今天想要 search 某个包，但是在 Command Line 运行 brew 命令后就显示下面的错误信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/bin/brew: /usr/local/Library/brew.rb: /System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby: bad interpreter: No such file or directory</span><br><span class="line">/usr/local/bin/brew: line 23: /usr/local/Library/brew.rb: Undefined error: 0</span><br></pre></td></tr></table></figure></p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-
-  <nav id="pagination">
-  
-  
-  <div class="clearfix"></div>
-</nav>
 </div></div>
     <aside id="sidebar" class="alignright">
   <div class="search">

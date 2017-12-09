@@ -16,7 +16,7 @@
   </script>
 
   
-  <title>Archiv | Enjoe&#39;s Blog</title>
+  <title>Archiv: 2017/12 | Enjoe&#39;s Blog</title>
   <meta name="author" content="Enjoe">
   
   
@@ -56,7 +56,7 @@
 <div class="clearfix"></div></header>
   <div id="content" class="inner">
     <div id="main-col" class="alignleft"><div id="wrapper">
-<h2 class="archive-title">Archiv</h2>
+<h2 class="archive-title">2017/12</h2>
 
 
   
@@ -203,124 +203,6 @@ NSOperationQueuePriorityVeryHigh = 8
         
           <div class="alignleft">
             <a href="/2017/12/09/xcode-compiled-config-20171209/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-05-23T11:39:02.000Z"><a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/">May 23 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/">调用一个动态获得的 Class 的初始化 protocol 实例方法</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>##问题</p>
-<p>标题有点绕，其实就是把：</p>
-<ol>
-<li>通过 <code>runtime</code> 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。</li>
-<li>某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。</li>
-</ol>
-<p>这两种需求结合在一起。准确来说就是通过 <code>runtime</code> 获得了一个实现了某个 protocol 的 Class，现在创建这个 Class 的一个实例并且调用 protocol 的 init 方法来初始化。上面两个需求，单独一个都能很简单地完成，然而结合在一起之后就不是那么简单了。<br>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-04-10T12:54:10.000Z"><a href="/2015/04/10/CoreData-transformable-20150410/">Apr 10 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/04/10/CoreData-transformable-20150410/">在 Core Data 中存取 transformable 类型的数据</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>在开发过程中有一个需要在 Core Data 中存取 NSDictionary 的需求，但是在 Core Data 的 attributeType 中并没有直接支持 NSDictionary 的类型，基本上就是一些 scalar 类型和 date、binary data、undefined 和 transformable 类型。</p>
-<p>最初的想法是把 NSDictionary 转为 NSData 然后用 binary data 的类型写入到 Core Data，然后要用的时候再从 Core Data 中读出 NSData，再转回 NSDictionary，但是想想这样其实也挺麻烦的，想看看 Core Data 有没有更好的对这类需求的支持，这个方法就作为最后的手段来使用吧。于是在扫了一遍 Core Data 的 attributeType 之后就盯上了 transformable 这个类型。</p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/04/10/CoreData-transformable-20150410/#more" class="more-link">Read More</a>
-          </div>
-        
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  
-    <article class="post">
-  
-  <div class="post-content">
-    <header>
-      
-        <div class="icon"></div>
-        <time datetime="2015-02-26T11:39:02.000Z"><a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/">Feb 26 2015</a></time>
-      
-      
-  
-    <h1 class="title"><a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/">解决 OS X 10.10 下运行 brew 命令时出现的错误</a></h1>
-  
-
-    </header>
-    <div class="entry">
-      
-        <p>  自从升级到 Yosemite 后就没用过 brew 命令了，今天想要 search 某个包，但是在 Command Line 运行 brew 命令后就显示下面的错误信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/bin/brew: /usr/local/Library/brew.rb: /System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby: bad interpreter: No such file or directory</span><br><span class="line">/usr/local/bin/brew: line 23: /usr/local/Library/brew.rb: Undefined error: 0</span><br></pre></td></tr></table></figure></p>
-      
-    </div>
-    <footer>
-      
-        
-          <div class="alignleft">
-            <a href="/2015/02/26/Fix-brew-error-on-yosemite-20150226/#more" class="more-link">Read More</a>
           </div>
         
         

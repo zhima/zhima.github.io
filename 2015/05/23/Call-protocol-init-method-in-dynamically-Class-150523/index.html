@@ -1,0 +1,240 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="google-site-verification" content="n-NISYYrXvuoP8Qe-BCErZQD6Z0652GwaWRDzQUM67g" />
+  <meta name="baidu-site-verification" content="ih3da6dLVz" />
+  <meta name="msvalidate.01" content="C1FD9E691C231961B11032A3E4CE0DE6" />
+  <script>
+      var _hmt = _hmt || [];
+      (function() {
+        var hm = document.createElement("script");
+          hm.src = "//hm.baidu.com/hm.js?4acde804f6a2d7e443051fe6c7db559f";
+            var s = document.getElementsByTagName("script")[0]; 
+              s.parentNode.insertBefore(hm, s);
+              })();
+  </script>
+
+  
+  <title>调用一个动态获得的 Class 的初始化 protocol 实例方法 | Enjoe&#39;s Blog</title>
+  <meta name="author" content="Enjoe">
+  
+  <meta name="description" content="##问题
+标题有点绕，其实就是把：
+
+通过 runtime 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。
+某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。
+
+这两种需求结合在一起。准确来说就是通过 runtime 获得了一个实现了某个 protocol 的 Class，现在创建这个 Class 的一个实例并且调用 protocol 的 init 方法来初始化。上面两个需求，单独一个都能很简单地完成，然而结合在一起之后就不是那么简单了。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="调用一个动态获得的 Class 的初始化 protocol 实例方法"/>
+  <meta property="og:site_name" content="Enjoe&#39;s Blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Enjoe&#39;s Blog" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Enjoe&#39;s Blog</a></h1>
+  <h2><a href="/">iOS Developer</a></h2>
+</div>
+<nav id="main-nav" class="alignright">
+  <ul>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+<div class="clearfix"></div></header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2015-05-23T11:39:02.000Z"><a href="/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/">May 23 2015</a></time>
+      
+      
+  
+    <h1 class="title">调用一个动态获得的 Class 的初始化 protocol 实例方法</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>##问题</p>
+<p>标题有点绕，其实就是把：</p>
+<ol>
+<li>通过 <code>runtime</code> 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。</li>
+<li>某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。</li>
+</ol>
+<p>这两种需求结合在一起。准确来说就是通过 <code>runtime</code> 获得了一个实现了某个 protocol 的 Class，现在创建这个 Class 的一个实例并且调用 protocol 的 init 方法来初始化。上面两个需求，单独一个都能很简单地完成，然而结合在一起之后就不是那么简单了。<br><a id="more"></a><br>通常要通过 <code>runtime</code> 创建一个类的实例，比较简单地一种 Objective-C 方法是：</p>
+<pre><code>Class cls = NSClassFromString(@&quot;TPValueModel&quot;);
+id obj = [[cls alloc] init];
+</code></pre><p>然而，如果是要通过调用某个 protocol 中的 init 方法来初始化这个实例呢？于是尝试通过 Class<tpinitializeprotocol> 来声明这个 Class 实现了这个 protocol，这个没有问题，但是当用这个 cls 类对象来创建初始化实例时，Xcode 报了 error，编译时 build failed，如下图：</tpinitializeprotocol></p>
+<p><img src="http://i.imgur.com/lF7f2tV.png" alt=""></p>
+<p>从上图可以看出 Xcode 给出的错误提示是无法识别 cls 中存在 <code>alloc</code> 类方法，这个就很奇怪了，在没有加 protocol 声明之前是可以正常编译运行的，加上 protocol 声明之后就编译失败了。<strong>这应该是在加上 protocol 声明之后，Xcode 就站在 protocol 的角度来识别这个 Class 类对象了，而在 protocol 中并没有声明 <code>alloc</code> 类方法，所以 Xcode 认为你调用了不存在的方法，从而编译报错</strong>。</p>
+<p>##解决方法</p>
+<p>要解决这个错误我能想到的有两种方法。</p>
+<h3 id="First"><a href="#First" class="headerlink" title="First"></a>First</h3><p>第一种是给 protocol 加上 <code>alloc</code> 类方法。既然编译器是站在 protocol 的角度识别这个 Class，那么只要我们给 protocol 加上 <code>alloc</code> 类方法声明就可以「欺骗」 Xcode 使之认为这个 Class 是存在这个方法的，从而可以编译通过。如下所示：</p>
+<pre><code>@protocol TPInitializeProtocol &lt;NSObject&gt;
++ (id)alloc;
+- (instancetype)initWithOwnedValue;
+@end
+</code></pre><p>在 protocol 中加上上述代码后，终于把 Xcode 的 error 报错消除了。</p>
+<p><img src="http://i.imgur.com/ebvnipe.png" alt=""></p>
+<h3 id="Second"><a href="#Second" class="headerlink" title="Second"></a>Second</h3><p>第二种方法是把创建和初始化分开两步，不要对 Class 声明 protocol，对创建后的实例声明 protocol，再调用 protocol 的 init 方法初始化。</p>
+<pre><code>Class cls = NSClassFromString(@&quot;TPValueModel&quot;);
+id&lt;TPInitializeProtocol&gt; unInitObj = [cls alloc];
+NSObject *obj = [unInitObj initWithOwnedValue];
+</code></pre><p>这样不需要给 protocol 添加代码也能解决 Xcode error 的问题。</p>
+<p>其实这个问题是在尝试用 <code>runtime</code> 的反射机制来解耦代码结构时遇到的，觉得比较有趣所以记录一下。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+  
+  <div class="categories">
+    <a href="/categories/iOS/">iOS</a>
+  </div>
+
+        
+  
+  <div class="tags">
+    <a href="/tags/Runtime/">Runtime</a>, <a href="/tags/Protocol/">Protocol</a>
+  </div>
+
+        
+  <div class="addthis addthis_toolbox addthis_default_style">
+    
+    
+    
+    
+    <a class="addthis_counter addthis_pill_style"></a>
+  </div>
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+<!-- 多说评论框 start -->
+    <div class="ds-thread" data-thread-key="2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/" data-title="调用一个动态获得的 Class 的初始化 protocol 实例方法" data-url="http://zhima.github.io/2015/05/23/Call-protocol-init-method-in-dynamically-Class-150523/"></div>
+    <!-- 多说评论框 end -->
+    <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+    <script type="text/javascript">
+    var duoshuoQuery = {short_name:"enjoe"};
+        (function() {
+                var ds = document.createElement('script');
+                        ds.type = 'text/javascript';ds.async = true;
+                                ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+                                        ds.charset = 'UTF-8';
+                                                (document.getElementsByTagName('head')[0] 
+                                                         || document.getElementsByTagName('body')[0]).appendChild(ds);
+                                                            })();
+                                                                </script>
+                                                                <!-- 多说公共JS代码 end -->
+</section>
+
+
+</div></div>
+    <aside id="sidebar" class="alignright">
+  <div class="search">
+  <form action="//google.com/search" method="get" accept-charset="utf-8">
+    <input type="search" name="q" results="0" placeholder="Suche">
+    <input type="hidden" name="q" value="site:zhima.github.io">
+  </form>
+</div>
+
+  
+<div class="widget tag">
+  <h3 class="title">Kategorien</h3>
+  <ul class="entry">
+  
+    <li><a href="/categories/Mac/">Mac</a><small>1</small></li>
+  
+    <li><a href="/categories/iOS/">iOS</a><small>2</small></li>
+  
+  </ul>
+</div>
+
+
+  
+<div class="widget tag">
+  <h3 class="title">Tags</h3>
+  <ul class="entry">
+  
+    <li><a href="/tags/Core-Data/">Core Data</a><small>1</small></li>
+  
+    <li><a href="/tags/Protocol/">Protocol</a><small>1</small></li>
+  
+    <li><a href="/tags/Runtime/">Runtime</a><small>1</small></li>
+  
+    <li><a href="/tags/Yosemite/">Yosemite</a><small>1</small></li>
+  
+    <li><a href="/tags/homebrew/">homebrew</a><small>1</small></li>
+  
+    <li><a href="/tags/iOS/">iOS</a><small>1</small></li>
+  
+  </ul>
+</div>
+
+</aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div class="alignleft">
+  
+  &copy; 2017 Enjoe
+  
+</div>
+<div class="clearfix"></div></footer>
+  <script src="//libs.baidu.com/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-62183993-1', 'auto');
+            ga('send', 'pageview');
+</script>
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+</body>
+</html>

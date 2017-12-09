@@ -16,16 +16,16 @@
   </script>
 
   
-  <title>Enjoe&#39;s Blog</title>
+  <title>iOS 线程池使用实践 | Enjoe&#39;s Blog</title>
   <meta name="author" content="Enjoe">
   
   <meta name="description" content="##概述：
-这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任">
+这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-  
+  <meta property="og:title" content="iOS 线程池使用实践"/>
   <meta property="og:site_name" content="Enjoe&#39;s Blog"/>
 
   
@@ -64,11 +64,11 @@
     <header>
       
         <div class="icon"></div>
-        <time datetime="2017-12-09T09:32:43.000Z"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/">Dec 9 2017</a></time>
+        <time datetime="2017-12-09T10:44:22.000Z"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/">Dec 9 2017</a></time>
       
       
   
-    <h1 class="title"></h1>
+    <h1 class="title">iOS 线程池使用实践</h1>
   
 
     </header>
@@ -76,6 +76,7 @@
       
         <p>##概述：</p>
 <p>这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。<br>线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。</p>
+<a id="more"></a>
 <p>下面是我找的线程池工作示意图：</p>
 <p><img src="http://ww4.sinaimg.cn/large/005yyi5Jjw1el3sc2wsqrj30gc0ae3yz.jpg" alt=""></p>
 <p>##需求：</p>
@@ -160,6 +161,11 @@ NSOperationQueuePriorityVeryHigh = 8
       
         
         
+  
+  <div class="tags">
+    <a href="/tags/thread/">thread</a>
+  </div>
+
         
   <div class="addthis addthis_toolbox addthis_default_style">
     
@@ -179,7 +185,7 @@ NSOperationQueuePriorityVeryHigh = 8
 
 <section id="comment">
 <!-- 多说评论框 start -->
-    <div class="ds-thread" data-thread-key="2017/12/09/iOS-thread-pool-practicise-20171209/" data-title="" data-url="http://zhima.github.io/2017/12/09/iOS-thread-pool-practicise-20171209/"></div>
+    <div class="ds-thread" data-thread-key="2017/12/09/iOS-thread-pool-practicise-20171209/" data-title="iOS 线程池使用实践" data-url="http://zhima.github.io/2017/12/09/iOS-thread-pool-practicise-20171209/"></div>
     <!-- 多说评论框 end -->
     <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
     <script type="text/javascript">
@@ -235,6 +241,10 @@ NSOperationQueuePriorityVeryHigh = 8
     <li><a href="/tags/homebrew/">homebrew</a><small>1</small></li>
   
     <li><a href="/tags/iOS/">iOS</a><small>1</small></li>
+  
+    <li><a href="/tags/thread/">thread</a><small>1</small></li>
+  
+    <li><a href="/tags/xcode-configuration/">xcode configuration</a><small>1</small></li>
   
   </ul>
 </div>

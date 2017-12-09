@@ -66,100 +66,31 @@
     <header>
       
         <div class="icon"></div>
-        <time datetime="2017-12-09T09:32:43.000Z"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/">Dec 9 2017</a></time>
+        <time datetime="2017-12-09T10:44:46.000Z"><a href="/2017/12/09/xcode-compiled-config-20171209/">Dec 9 2017</a></time>
       
       
   
-    <h1 class="title"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/"></a></h1>
+    <h1 class="title"><a href="/2017/12/09/xcode-compiled-config-20171209/">灵活运用 Xcode 给项目添加不同的编译时配置</a></h1>
   
 
     </header>
     <div class="entry">
       
-        <p>##概述：</p>
-<p>这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。<br>线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。</p>
-<p>下面是我找的线程池工作示意图：</p>
-<p><img src="http://ww4.sinaimg.cn/large/005yyi5Jjw1el3sc2wsqrj30gc0ae3yz.jpg" alt=""></p>
-<p>##需求：</p>
-<p>为什么会说到线程池呢？这是因为在项目中做到一个文件上传的模块，文件上传时当然最好是异步执行，否则在主线程执行的话有可能会影响到应用的响应和刷新。要说异步执行的话，如果只开一个后台线程来执行，那么当有文件在上传时，后面的文件上传的任务就会被阻塞而无法执行，这样效率太低，但如果每个文件上传的任务都单独创建一个线程来执行的话又太浪费资源了，因为其实每个任务的执行时间都不会太长，这样有可能会导致频繁地创建和销毁线程，而且如果短时间内有大量的文件上传任务的话会导致同时创建大量的线程，这会导致大量的资源占用，是非常可怕的一件事情，所以要必须控制资源占用。所以在要平衡效率和资源的前提下最好的选择就是线程池了。</p>
-<p>最先想到的是GCD，因为它所采用的就是跟线程池类似的机制，但是认真看了一下GCD的API，发现并不适合我的需求，最主要的问题就是不能取消已经提交的任务，因为有可能在文件上传任务的执行过程中或者在任务处于队列中尚未执行时就要取消任务的执行，所以GCD方案被否决了。那么剩下的就只有NSOperationQueue了，相对于GCD来说，NSOperationQueue提高了更高的灵活性，NSOperationQueue也是采用了线程池的机制，每次从队列中调度出NSOperation类型的任务放到空闲线程中执行，并且可以通过NSOpetaion的API对单个任务进行取消控制，或者设置该任务在队列中的优先级。</p>
-<p>##实践：<br>下面我们来看看怎么用NSoperationQueue和NSOperation来实现我们的需求，首先是创建一个NSOperationQueue，并且对这个queue进行一些设置，代码如下：</p>
-<pre><code>self.xxxOperationQueue = [[NSOperationQueue alloc] init];
-[self.xxxOperationQueue setMaxConcurrentOperationCount:kMaxRetrieveFileConcurrentSize];
-</code></pre><p>注意这里的[setMaxConcurrentOperationCount:]是为了设置线程池的同时运行的最大线程数，这是为了防止上文所说的短时间内出现大量任务时导致的资源占用过多的情况，默认是-1，这时NSoperationQueue最大同时执行线程数取决于当前系统条件。</p>
-<p>接下来就轮到NSoperation了，NSoperation有两个子类型NSInvocationOperation和NSBlockOperation，这两个子类型可以直接把selector或者block包装为NSOperation类型的任务，然后直接投放到queue中执行，相当便利，但是不适合我们的任务需求，因为我们上传时用到了AsyncSocket这个网络类库，由于该网络类库是异步回调型的，每次的读写操作都是通过回调目标的相应方法来执行的，所以这需要目标对象在读写操作完成前都要一直存活。如果使用NSInvocationOperation和NSBlockOperation的话在执行完selector或者block里面的逻辑后，queue就会认为这个任务已经finish了，就会将其移除，然后这个任务就会被销毁，所以我们要能自己控制任务的生命周期，这可以通过继承NSOperation来做到。</p>
-<p>要通过继承NSOperation来实现并发执行任务，那么至少要重载下列方法：</p>
-<ul>
-<li>start</li>
-<li>main</li>
-<li>isConcurrent</li>
-<li>isFinished</li>
-<li>isExecuting</li>
-</ul>
-<p>其中isFinished和isExecuting方法返回适当的值表示当前任务的状态，NSOperationQueue通过KVO监听这两个值的状态来决定任务是否已经完成，然后移除任务。所以要控制NSoperation的生命周期只需修改这两个方法的返回值，注意在修改时要发出KVO通知，告诉所有的监听者这两个方法的返回值改变了，代码如下：</p>
-<pre><code>- (BOOL)isExecuting
-{
-    return self.executing;
-}
-
-- (BOOL)isFinished
-{
-return self.finished;
-}
-
-[self willChangeValueForKey:@&quot;isFinished&quot;];
-self.finished = YES;
-[self didChangeValueForKey:@&quot;isFinished&quot;];
-
-
-[self willChangeValueForKey:@&quot;isExecuting&quot;];
-self.executing = YES;
-[self didChangeValueForKey:@&quot;isExecuting&quot;];
-</code></pre><p>注意isFinished和isExecuting这两个方法的访问必须是线程安全的。<br>isConcurrent方法返回值表示该任务是否并发执行，默认返回值是NO，但在iOS5.0以后这个值已经被省略，任务的并发执行最终是和queue的MaxConcurrentOperationCount有关。</p>
-<p>NSOperationQueue通过调用NSOperation的start方法来开始任务，所以在start方法内要调用isCancelled方法来检查该任务是否已取消，如果是则修改isFinished的返回值为YES，然后直接返回，否则修改isExecuting的返回值为YES，表示出于执行状态，然后调用main方法执行业务逻辑。</p>
-<pre><code>- (void)start
-{
-if ([self isCancelled]) {
-    [self willChangeValueForKey:@&quot;isFinished&quot;];
-    self.finished = YES;
-    [self didChangeValueForKey:@&quot;isFinished&quot;];
-    return;
-} else {
-    [self willChangeValueForKey:@&quot;isExecuting&quot;];
-    self.executing = YES;
-    [self didChangeValueForKey:@&quot;isExecuting&quot;];
-    [self main];
-}
-}
-</code></pre><p>main方法用于处理任务的逻辑，但有一点要注意的是一定要记得在这个方法里分配autorelease pool，因为在NSOperationQueue线程池中创建的线程默认是没有autorelease pool的。</p>
-<pre><code>- (void)main
-{
-@autoreleasepool {
-    //code here
-}
-}
-</code></pre><p>在继承NSOperation创建新的子类后，最后就是每当有一个新的文件上传任务到来时则创建一个NSoperation的子类对象，设置该对象的优先级，然后调用NSOperation的addOperation方法调价到队列中即可。</p>
-<pre><code>XXXOperation *operation = [[XXXOperation alloc] initWitInfo:XXX];
-[operation setQueuePriority:NSOperationQueuePriorityHigh];
-[self.operationQueue addOperation:operation];
-</code></pre><p>这里setQueuePriority方法可以设置的参数有5个，其类型定义在NSOperation头文件中，具体可以设置的值如下：</p>
-<pre><code>typedef NS_ENUM(NSInteger, NSOperationQueuePriority) {
-NSOperationQueuePriorityVeryLow = -8L,
-NSOperationQueuePriorityLow = -4L,
-NSOperationQueuePriorityNormal = 0,
-NSOperationQueuePriorityHigh = 4,
-NSOperationQueuePriorityVeryHigh = 8
-};
-</code></pre><p>当要取消某个文件上传任务时只要调用NSOperation的cancel方法，这时operation对象的isCancelled方法就会返回YES，在operation对象的业务逻辑中通过检查该方法的返回值决定是否结束operation的生命周期，当检查到返回值为YES时，则修改isFInished和isExecuting方法的返回值结束任务的执行。</p>
-<pre><code>[operation cancel];
-</code></pre><p>也可以调用NSOperationQueue的cancelAllOperations方法来一次取消队列中所有的任务，包括正在执行的任务。</p>
-<pre><code>[self.operationQueue cancelAllOperations];
-</code></pre><p>##结语：<br>在用NSOperationQueue做这个线程池的时候，我想到了跟这个非常类似的Java的thread pool，其中NSOperationQueue相当于Java的ExecutorService，NSOperation相当于Java的Runnable，所以线程池的实现在不同的平台中是大同小异的，而在实际使用过程中，我觉得NSOperationQueue和NSOperation相对来说更简单灵活一些。本文只是探讨了线程池在iOS中的一个实现–NSOperationQueue的浅层使用，希望以后有机会能进一步深入研究线程池的实现原理甚至其优化算法。</p>
-
+        <p>在开发过程中经常会需要定义一些常量，希望在编译生成不同版本时用不同的值。比较常见的一种做法是根据是否定义了 DEBUG 宏来定义不同的常量值，对于 debug 的版本使用 debug 的常量值，对于 release 的版本则使用 release 的常量值。如下所示：</p>
+<pre><code>#if DEBUG
+#define DefaultBaseURL @&quot;http://xxx.xxx.xxx.xxx&quot;
+#else
+#define DefaultBaseURL @&quot;http://aaaa.aaa.aaa&quot;
+#endif
+</code></pre><p>但这些都要定义在代码中，如果能定义在 plist 配置文件中就更好了。而且如果除了 debug 和 release 之外还有其他的版本需要定义不同的常量值呢？甚至如果要在编译时根据不同的版本使用不同的 Bundle ID 呢？很明显上面的方法是无法解决这些问题的。<br>
       
     </div>
     <footer>
       
+        
+          <div class="alignleft">
+            <a href="/2017/12/09/xcode-compiled-config-20171209/#more" class="more-link">Read More</a>
+          </div>
         
         
       
@@ -178,31 +109,25 @@ NSOperationQueuePriorityVeryHigh = 8
     <header>
       
         <div class="icon"></div>
-        <time datetime="2017-12-09T09:32:43.000Z"><a href="/2017/12/09/xcode-compiled-config-20171209/">Dec 9 2017</a></time>
+        <time datetime="2017-12-09T10:44:22.000Z"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/">Dec 9 2017</a></time>
       
       
   
-    <h1 class="title"><a href="/2017/12/09/xcode-compiled-config-20171209/"></a></h1>
+    <h1 class="title"><a href="/2017/12/09/iOS-thread-pool-practicise-20171209/">iOS 线程池使用实践</a></h1>
   
 
     </header>
     <div class="entry">
       
-        <p>灵活运用 Xcode 给项目添加不同的编译时配置</p>
-<p>在开发过程中经常会需要定义一些常量，希望在编译生成不同版本时用不同的值。比较常见的一种做法是根据是否定义了 DEBUG 宏来定义不同的常量值，对于 debug 的版本使用 debug 的常量值，对于 release 的版本则使用 release 的常量值。如下所示：</p>
-<pre><code>#if DEBUG
-#define DefaultBaseURL @&quot;http://xxx.xxx.xxx.xxx&quot;
-#else
-#define DefaultBaseURL @&quot;http://aaaa.aaa.aaa&quot;
-#endif
-</code></pre><p>但这些都要定义在代码中，如果能定义在 plist 配置文件中就更好了。而且如果除了 debug 和 release 之外还有其他的版本需要定义不同的常量值呢？甚至如果要在编译时根据不同的版本使用不同的 Bundle ID 呢？很明显上面的方法是无法解决这些问题的。<br>
+        <p>##概述：</p>
+<p>这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。<br>线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。</p>
       
     </div>
     <footer>
       
         
           <div class="alignleft">
-            <a href="/2017/12/09/xcode-compiled-config-20171209/#more" class="more-link">Read More</a>
+            <a href="/2017/12/09/iOS-thread-pool-practicise-20171209/#more" class="more-link">Read More</a>
           </div>
         
         
@@ -260,6 +185,10 @@ NSOperationQueuePriorityVeryHigh = 8
     <li><a href="/tags/homebrew/">homebrew</a><small>1</small></li>
   
     <li><a href="/tags/iOS/">iOS</a><small>1</small></li>
+  
+    <li><a href="/tags/thread/">thread</a><small>1</small></li>
+  
+    <li><a href="/tags/xcode-configuration/">xcode configuration</a><small>1</small></li>
   
   </ul>
 </div>

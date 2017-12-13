@@ -19,8 +19,7 @@
   <title>iOS 线程池使用实践 | Enjoe&#39;s Blog</title>
   <meta name="author" content="Enjoe">
   
-  <meta name="description" content="##概述：
-这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。">
+  <meta name="description" content="概述：这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。">
   
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -74,15 +73,13 @@
     </header>
     <div class="entry">
       
-        <p>##概述：</p>
-<p>这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。<br>线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。</p>
+        <h2 id="概述："><a href="#概述：" class="headerlink" title="概述："></a>概述：</h2><p>这个标题也许有点大了，正确地来说这篇文章主要是讲使用NSOperation和NSOoperationQueue来完成一个较为灵活的线程池实践。<br>线程池这个概念也是相当大的，这里只谈谈我对线程池的狭义的理解：线程池主要是通过减少线程的创建/销毁，重用现有的资源来提高性能的一种机制，调用者把任务投放到线程池的任务队列中，线程池根据调度算法从任务队列中取出任务放到空闲线程中执行，如此一直反复循环。而根据不同的业务需求，还可以对线程池的任务队列的控制、调度算法、线程池的初始化、线程的生命周期等方面进行优化，从而可以使线程池的性能达到最大化。线程池适合于多个任务同时执行，而这些任务都是短时间内完成的，而不是长期性的。</p>
 <a id="more"></a>
 <p>下面是我找的线程池工作示意图：</p>
 <p><img src="http://ww4.sinaimg.cn/large/005yyi5Jjw1el3sc2wsqrj30gc0ae3yz.jpg" alt=""></p>
-<p>##需求：</p>
-<p>为什么会说到线程池呢？这是因为在项目中做到一个文件上传的模块，文件上传时当然最好是异步执行，否则在主线程执行的话有可能会影响到应用的响应和刷新。要说异步执行的话，如果只开一个后台线程来执行，那么当有文件在上传时，后面的文件上传的任务就会被阻塞而无法执行，这样效率太低，但如果每个文件上传的任务都单独创建一个线程来执行的话又太浪费资源了，因为其实每个任务的执行时间都不会太长，这样有可能会导致频繁地创建和销毁线程，而且如果短时间内有大量的文件上传任务的话会导致同时创建大量的线程，这会导致大量的资源占用，是非常可怕的一件事情，所以要必须控制资源占用。所以在要平衡效率和资源的前提下最好的选择就是线程池了。</p>
+<h2 id="需求："><a href="#需求：" class="headerlink" title="需求："></a>需求：</h2><p>为什么会说到线程池呢？这是因为在项目中做到一个文件上传的模块，文件上传时当然最好是异步执行，否则在主线程执行的话有可能会影响到应用的响应和刷新。要说异步执行的话，如果只开一个后台线程来执行，那么当有文件在上传时，后面的文件上传的任务就会被阻塞而无法执行，这样效率太低，但如果每个文件上传的任务都单独创建一个线程来执行的话又太浪费资源了，因为其实每个任务的执行时间都不会太长，这样有可能会导致频繁地创建和销毁线程，而且如果短时间内有大量的文件上传任务的话会导致同时创建大量的线程，这会导致大量的资源占用，是非常可怕的一件事情，所以要必须控制资源占用。所以在要平衡效率和资源的前提下最好的选择就是线程池了。</p>
 <p>最先想到的是GCD，因为它所采用的就是跟线程池类似的机制，但是认真看了一下GCD的API，发现并不适合我的需求，最主要的问题就是不能取消已经提交的任务，因为有可能在文件上传任务的执行过程中或者在任务处于队列中尚未执行时就要取消任务的执行，所以GCD方案被否决了。那么剩下的就只有NSOperationQueue了，相对于GCD来说，NSOperationQueue提高了更高的灵活性，NSOperationQueue也是采用了线程池的机制，每次从队列中调度出NSOperation类型的任务放到空闲线程中执行，并且可以通过NSOpetaion的API对单个任务进行取消控制，或者设置该任务在队列中的优先级。</p>
-<p>##实践：<br>下面我们来看看怎么用NSoperationQueue和NSOperation来实现我们的需求，首先是创建一个NSOperationQueue，并且对这个queue进行一些设置，代码如下：</p>
+<h2 id="实践："><a href="#实践：" class="headerlink" title="实践："></a>实践：</h2><p>下面我们来看看怎么用NSoperationQueue和NSOperation来实现我们的需求，首先是创建一个NSOperationQueue，并且对这个queue进行一些设置，代码如下：</p>
 <pre><code>self.xxxOperationQueue = [[NSOperationQueue alloc] init];
 [self.xxxOperationQueue setMaxConcurrentOperationCount:kMaxRetrieveFileConcurrentSize];
 </code></pre><p>注意这里的[setMaxConcurrentOperationCount:]是为了设置线程池的同时运行的最大线程数，这是为了防止上文所说的短时间内出现大量任务时导致的资源占用过多的情况，默认是-1，这时NSoperationQueue最大同时执行线程数取决于当前系统条件。</p>
@@ -153,7 +150,7 @@ NSOperationQueuePriorityVeryHigh = 8
 <pre><code>[operation cancel];
 </code></pre><p>也可以调用NSOperationQueue的cancelAllOperations方法来一次取消队列中所有的任务，包括正在执行的任务。</p>
 <pre><code>[self.operationQueue cancelAllOperations];
-</code></pre><p>##结语：<br>在用NSOperationQueue做这个线程池的时候，我想到了跟这个非常类似的Java的thread pool，其中NSOperationQueue相当于Java的ExecutorService，NSOperation相当于Java的Runnable，所以线程池的实现在不同的平台中是大同小异的，而在实际使用过程中，我觉得NSOperationQueue和NSOperation相对来说更简单灵活一些。本文只是探讨了线程池在iOS中的一个实现–NSOperationQueue的浅层使用，希望以后有机会能进一步深入研究线程池的实现原理甚至其优化算法。</p>
+</code></pre><h2 id="结语："><a href="#结语：" class="headerlink" title="结语："></a>结语：</h2><p>在用NSOperationQueue做这个线程池的时候，我想到了跟这个非常类似的Java的thread pool，其中NSOperationQueue相当于Java的ExecutorService，NSOperation相当于Java的Runnable，所以线程池的实现在不同的平台中是大同小异的，而在实际使用过程中，我觉得NSOperationQueue和NSOperation相对来说更简单灵活一些。本文只是探讨了线程池在iOS中的一个实现–NSOperationQueue的浅层使用，希望以后有机会能进一步深入研究线程池的实现原理甚至其优化算法。</p>
 
       
     </div>

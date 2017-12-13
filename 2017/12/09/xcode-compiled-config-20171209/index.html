@@ -86,21 +86,20 @@
 #define DefaultBaseURL @&quot;http://aaaa.aaa.aaa&quot;
 #endif
 </code></pre><p>但这些都要定义在代码中，如果能定义在 plist 配置文件中就更好了。而且如果除了 debug 和 release 之外还有其他的版本需要定义不同的常量值呢？甚至如果要在编译时根据不同的版本使用不同的 Bundle ID 呢？很明显上面的方法是无法解决这些问题的。<br><a id="more"></a></p>
-<p>##配置</p>
-<p>而 Xcode 提供的 Configuration Set 能很好地解决这些需求。<br>根据下面的步骤添加不同版本的 Configuration Set，然后在 Build Setting 中定义不同版本的常量值，并且在 plist 文件中添加这些常量的 Key-Value 定义，在编译时 Xcode 会根据相应的编译配置把 Build Setting 中相应的常量值填充到 plist 文件中，这样在代码中直接从 plist 文件中读取这些 Key 的值就是当前版本的编译配置的值。</p>
-<p>###步骤 1：<br>在 project-&gt;Info-&gt;Configurations 中点击 + 号添加 config set（配置集合），这样在 Build Setting 中每个可配置的选项下除了 Debug 和 Release 之外就会多出一个新添加的 config（例如这里的 Inhouse-Release）。</p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>而 Xcode 提供的 Configuration Set 能很好地解决这些需求。<br>根据下面的步骤添加不同版本的 Configuration Set，然后在 Build Setting 中定义不同版本的常量值，并且在 plist 文件中添加这些常量的 Key-Value 定义，在编译时 Xcode 会根据相应的编译配置把 Build Setting 中相应的常量值填充到 plist 文件中，这样在代码中直接从 plist 文件中读取这些 Key 的值就是当前版本的编译配置的值。</p>
+<h3 id="步骤-1："><a href="#步骤-1：" class="headerlink" title="步骤 1："></a>步骤 1：</h3><p>在 project-&gt;Info-&gt;Configurations 中点击 + 号添加 config set（配置集合），这样在 Build Setting 中每个可配置的选项下除了 Debug 和 Release 之外就会多出一个新添加的 config（例如这里的 Inhouse-Release）。</p>
 <p><img src="http://i.imgur.com/0nE4x0e.png" alt=""></p>
-<p>###步骤 2：<br>选择要配置的 target-&gt;Build Setting-&gt;选择 Levels 旁边的 + 号，这时会弹出一个列表，选择「Add User-defined Setting」添加用户自定义的设置（这里的配置是指编译时设置）。</p>
+<h3 id="步骤-2："><a href="#步骤-2：" class="headerlink" title="步骤 2："></a>步骤 2：</h3><p>选择要配置的 target-&gt;Build Setting-&gt;选择 Levels 旁边的 + 号，这时会弹出一个列表，选择「Add User-defined Setting」添加用户自定义的设置（这里的配置是指编译时设置）。</p>
 <p><img src="http://i.imgur.com/Gx4ogm6.png" alt=""></p>
-<p>###步骤 3：<br>点击后在 Build Setting 页的最下方这时会多出一个 Group 叫 User-Defined，在 Group 中有一个选项光标在闪，在这个选项中输入配置名称，然后点击选项左边的三角形就可以看到有 3 个 config 可以设置，从而可以给不同的 config 设置不同的值。例如这里可以根据不同的编译版本设置不同的 bundle id。</p>
+<h3 id="步骤-3："><a href="#步骤-3：" class="headerlink" title="步骤 3："></a>步骤 3：</h3><p>点击后在 Build Setting 页的最下方这时会多出一个 Group 叫 User-Defined，在 Group 中有一个选项光标在闪，在这个选项中输入配置名称，然后点击选项左边的三角形就可以看到有 3 个 config 可以设置，从而可以给不同的 config 设置不同的值。例如这里可以根据不同的编译版本设置不同的 bundle id。</p>
 <p><img src="http://i.imgur.com/UhzTeiA.png" alt=""></p>
-<p>###步骤 4：<br>然后在项目的 Info.plist 中右键-&gt; Add Row，添加新的 Key-Value 对，在 Key 中填入自定义的名称，可以跟上面定义的选项名称一样，也可以不一样，在 Value 中则填写 $(上面 User-Defined 选项的自定义名称)，从而在 Info.plist 中把 Key 和 Build Setting 的选项绑定起来。也可以对在 Info.plist 中已经存在的 Key 填写在 Build Setting 中的选项名（用 $() 的方式），使其值根据不同的编译版本而不同。<br>例如在 Bundle Identifier 中填入 $(BUNDLE_IDENTIFIER)，这样 target 的 bundle id 就会随着编译版本的改变而不同。</p>
+<h3 id="步骤-4："><a href="#步骤-4：" class="headerlink" title="步骤 4："></a>步骤 4：</h3><p>然后在项目的 Info.plist 中右键-&gt; Add Row，添加新的 Key-Value 对，在 Key 中填入自定义的名称，可以跟上面定义的选项名称一样，也可以不一样，在 Value 中则填写 $(上面 User-Defined 选项的自定义名称)，从而在 Info.plist 中把 Key 和 Build Setting 的选项绑定起来。也可以对在 Info.plist 中已经存在的 Key 填写在 Build Setting 中的选项名（用 $() 的方式），使其值根据不同的编译版本而不同。<br>例如在 Bundle Identifier 中填入 $(BUNDLE_IDENTIFIER)，这样 target 的 bundle id 就会随着编译版本的改变而不同。</p>
 <p><img src="http://i.imgur.com/mp6yrXg.png" alt=""></p>
 <p>完成上述配置后，可以在代码中通过普通的读取 Info.plist 的方式来读取自定义的不同编译配置。</p>
 <pre><code>NSString *value = [[[NSBundle mainBundle] infoDictionary] objectForKey:@&quot;BUNDLE_IDENTIFIER&quot;];
-</code></pre><p>##Scheme 应用<br>除此之外，还能在 Edit Scheme 中配置不同的运行场景使用不同的 Build Configuration。</p>
+</code></pre><h2 id="Scheme-应用"><a href="#Scheme-应用" class="headerlink" title="Scheme 应用"></a>Scheme 应用</h2><p>除此之外，还能在 Edit Scheme 中配置不同的运行场景使用不同的 Build Configuration。</p>
 <p><img src="http://i.imgur.com/tGudeZ4.png" alt=""></p>
-<p>##Jenkins 应用<br>最后就是可以在 Jenkins 中配置使用不同的 Build Configuration，不过要同时用不同的 Build Configuration 来持续集成的话，要在 Jenkins 创建多个应用才行。<br>在构建-&gt;General build settings 中点击 Settings 按钮，在 Configuration 选项中填写想要使用的 Build Configuration。<br>这样就可以同一个项目根据不同的 Build Configuration 生成不同版本的应用。</p>
+<h2 id="Jenkins-应用"><a href="#Jenkins-应用" class="headerlink" title="Jenkins 应用"></a>Jenkins 应用</h2><p>最后就是可以在 Jenkins 中配置使用不同的 Build Configuration，不过要同时用不同的 Build Configuration 来持续集成的话，要在 Jenkins 创建多个应用才行。<br>在构建-&gt;General build settings 中点击 Settings 按钮，在 Configuration 选项中填写想要使用的 Build Configuration。<br>这样就可以同一个项目根据不同的 Build Configuration 生成不同版本的应用。</p>
 <p><img src="http://i.imgur.com/ohejIDj.png" alt=""></p>
 
       

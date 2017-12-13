@@ -90,10 +90,8 @@
 </li>
 </ol>
 <p>我使用的是第一种方式，直接选择了 attribute 的 Type 为 transformable 后就完成了。由于 value transformer name 的文本框为空，所以 Core Data 会默认使用 NSKeyedUnarchiveFromDataTransformerName 为 transformer。这个 transformer 其实就是调用 NSKeyArchiver 来对 non-standard 类型转换。整个过程大概类似于这样：</p>
-<p>#####NSDictionary -&gt; NSData</p>
-<pre><code>NSData *data = [NSKeyedArchiver archivedDataWithRootObject:myDictionary];
-</code></pre><p>#####NSData -&gt; NSDictionary</p>
-<pre><code>NSDictionary *dictionary = (NSDictionary*)[NSKeyedUnarchiver unarchiverObjectWithData:data];
+<h5 id="NSDictionary-gt-NSData"><a href="#NSDictionary-gt-NSData" class="headerlink" title="NSDictionary -&gt; NSData"></a>NSDictionary -&gt; NSData</h5><pre><code>NSData *data = [NSKeyedArchiver archivedDataWithRootObject:myDictionary];
+</code></pre><h5 id="NSData-gt-NSDictionary"><a href="#NSData-gt-NSDictionary" class="headerlink" title="NSData -&gt; NSDictionary"></a>NSData -&gt; NSDictionary</h5><pre><code>NSDictionary *dictionary = (NSDictionary*)[NSKeyedUnarchiver unarchiverObjectWithData:data];
 </code></pre><p>由于我要存取的 NSDictionary 是直接支持用 NSKeyedArchiver 来转换的，所以我没有自定义 transformer，直接用默认的 transformer 就可以满足我的需要了。</p>
 <p>接下来就是重新生成实体类，由于我用的是 mogenerator 来生成的，要让 mogenerator 在生成的实体类中对应的 attribute 是我想要的 NSDcitionary，那么还需要在 .xcdatamodeld 中给 attribute 的 User Info 添加一项</p>
 <table>

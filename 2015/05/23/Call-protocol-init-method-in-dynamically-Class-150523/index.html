@@ -19,8 +19,7 @@
   <title>调用一个动态获得的 Class 的初始化 protocol 实例方法 | Enjoe&#39;s Blog</title>
   <meta name="author" content="Enjoe">
   
-  <meta name="description" content="##问题
-标题有点绕，其实就是把：
+  <meta name="description" content="问题标题有点绕，其实就是把：
 
 通过 runtime 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。
 某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。
@@ -79,8 +78,7 @@
     </header>
     <div class="entry">
       
-        <p>##问题</p>
-<p>标题有点绕，其实就是把：</p>
+        <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>标题有点绕，其实就是把：</p>
 <ol>
 <li>通过 <code>runtime</code> 根据字符串获得某个 Class，用这个 Class 创建且初始化一个实例。</li>
 <li>某个类实现了一个 protocol，这个 protocol 定义了某个自定义的 init 方法，创建出来的实例需要通过这个 init 方法来初始化。</li>
@@ -91,8 +89,7 @@ id obj = [[cls alloc] init];
 </code></pre><p>然而，如果是要通过调用某个 protocol 中的 init 方法来初始化这个实例呢？于是尝试通过 Class<tpinitializeprotocol> 来声明这个 Class 实现了这个 protocol，这个没有问题，但是当用这个 cls 类对象来创建初始化实例时，Xcode 报了 error，编译时 build failed，如下图：</tpinitializeprotocol></p>
 <p><img src="http://i.imgur.com/lF7f2tV.png" alt=""></p>
 <p>从上图可以看出 Xcode 给出的错误提示是无法识别 cls 中存在 <code>alloc</code> 类方法，这个就很奇怪了，在没有加 protocol 声明之前是可以正常编译运行的，加上 protocol 声明之后就编译失败了。<strong>这应该是在加上 protocol 声明之后，Xcode 就站在 protocol 的角度来识别这个 Class 类对象了，而在 protocol 中并没有声明 <code>alloc</code> 类方法，所以 Xcode 认为你调用了不存在的方法，从而编译报错</strong>。</p>
-<p>##解决方法</p>
-<p>要解决这个错误我能想到的有两种方法。</p>
+<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>要解决这个错误我能想到的有两种方法。</p>
 <h3 id="First"><a href="#First" class="headerlink" title="First"></a>First</h3><p>第一种是给 protocol 加上 <code>alloc</code> 类方法。既然编译器是站在 protocol 的角度识别这个 Class，那么只要我们给 protocol 加上 <code>alloc</code> 类方法声明就可以「欺骗」 Xcode 使之认为这个 Class 是存在这个方法的，从而可以编译通过。如下所示：</p>
 <pre><code>@protocol TPInitializeProtocol &lt;NSObject&gt;
 + (id)alloc;
